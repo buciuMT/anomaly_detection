@@ -1,0 +1,22 @@
+[project]
+name = "lab1"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { email = "theodor.buciu@proton.me" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "lsp-types[pyod]>=0.24.1",
+    "matplotlib>=3.11.2",
+    "pyod>=3.6.6",
+    "scikit-learn>=1.9.1",
+]
+
+[project.scripts]
+lab1 = "lab1:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
