@@ -14,6 +14,7 @@ dependencies = [
   "scikit-learn>=1.9.1",
   "scipy>=1.18.1",
   "tensorflow>=2.22.0rc0",
+  "torch>=2.15.0",
 ]
 
 [project.scripts]
