@@ -8,6 +8,7 @@ from pyod.models import knn as pyodknn
 from pyod.models import lof as pyodlof
 from pyod.utils.utility import standardizer
 from scipy.io import loadmat
+from scipy.stats import alpha
 from sklearn.datasets import make_blobs
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.model_selection import train_test_split
@@ -66,7 +67,7 @@ def ex1():
 
 
 def ex2():
-    fig, axes = plt.subplots(1, 3)
+    fig, axes = plt.subplots(3, 3)
 
     x_train, _ = make_blobs(
         n_samples=1000,
@@ -75,37 +76,83 @@ def ex2():
     )
     x_train = cast(np.ndarray, x_train)
     # print(x_train.shape)
-
-    iff = IForest(contamination=0.02)
-    iff.fit(x_train)
     x_test = np.random.uniform(-5, 15, size=(1000, 2))
-    anomaly_scores = iff.decision_function(x_test)
-    axes[0].scatter(
-        x_test[:, 0],
-        x_test[:, 1],
-        c=anomaly_scores,
-    )
 
-    iff = DIF(contamination=0.02)
-    iff.fit(x_train)
-    x_test = np.random.uniform(-5, 15, size=(1000, 2))
-    anomaly_scores = iff.decision_function(x_test)
-    axes[1].scatter(
-        x_test[:, 0],
-        x_test[:, 1],
-        c=anomaly_scores,
-    )
+    for iter, neur in enumerate([2, 20, 100]):
+        iff = IForest(contamination=0.02)
+        iff.fit(x_train)
+        anomaly_scores = iff.decision_function(x_test)
+        axes[0][iter].scatter(
+            x_test[:, 0],
+            x_test[:, 1],
+            c=anomaly_scores,
+        )
 
-    iff = LODA(contamination=0.02)
-    iff.fit(x_train)
-    x_test = np.random.uniform(-5, 15, size=(1000, 2))
-    anomaly_scores = iff.decision_function(x_test)
-    axes[2].scatter(
-        x_test[:, 0],
-        x_test[:, 1],
-        c=anomaly_scores,
+        iff = DIF(contamination=0.02, hidden_neurons=[neur])
+        iff.fit(x_train)
+        anomaly_scores = iff.decision_function(x_test)
+        axes[1][iter].scatter(
+            x_test[:, 0],
+            x_test[:, 1],
+            c=anomaly_scores,
+        )
+
+        iff = LODA(contamination=0.02, n_bins=neur)
+        iff.fit(x_train)
+        anomaly_scores = iff.decision_function(x_test)
+        axes[2][iter].scatter(
+            x_test[:, 0],
+            x_test[:, 1],
+            c=anomaly_scores,
+        )
+    plt.show()  # not scaled???
+
+    fig, axes = plt.subplots(3, 3, subplot_kw={"projection": "3d"})
+
+    x_train, _ = make_blobs(
+        n_samples=1000,
+        centers=[(0, 10, 0), (10, 0, 10)],
+        n_features=3,
     )
-    plt.show()
+    x_train = cast(np.ndarray, x_train)
+    # print(x_train.shape)
+
+    x_test = np.random.uniform(-5, 15, size=(1000, 3))
+
+    for iter, neur in enumerate([2, 20, 100]):
+        iff = IForest(contamination=0.02)
+        iff.fit(x_train)
+        anomaly_scores = iff.decision_function(x_test)
+        axes[0][iter].scatter(
+            x_test[:, 0],
+            x_test[:, 1],
+            x_test[:, 2],
+            c=anomaly_scores,
+            alpha=0.5,
+        )
+
+        iff = DIF(contamination=0.02, hidden_neurons=[neur])
+        iff.fit(x_train)
+        anomaly_scores = iff.decision_function(x_test)
+        axes[1][iter].scatter(
+            x_test[:, 0],
+            x_test[:, 1],
+            x_test[:, 2],
+            c=anomaly_scores,
+            alpha=0.5,
+        )
+
+        iff = LODA(contamination=0.02, n_bins=neur)
+        iff.fit(x_train)
+        anomaly_scores = iff.decision_function(x_test)
+        axes[2][iter].scatter(
+            x_test[:, 0],
+            x_test[:, 1],
+            x_test[:, 2],
+            c=anomaly_scores,
+            alpha=0.5,
+        )
+    plt.show()  # not scaled???
 
 
 # chosen by fair dice rol
