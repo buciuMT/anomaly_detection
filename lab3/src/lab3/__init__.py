@@ -10,12 +10,13 @@ from pyod.utils.utility import standardizer
 from scipy.io import loadmat
 from scipy.stats import alpha
 from sklearn.datasets import make_blobs
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from pyod.models.iforest import IForest
 from pyod.models.dif import DIF
 from pyod.models.loda import LODA
+import scipy
 
 
 def ex1():
@@ -155,6 +156,47 @@ def ex2():
     plt.show()  # not scaled???
 
 
+def ex3():
+    data = loadmat("shuttle.mat")
+    # print(data)
+    x = cast(np.ndarray, data["X"])
+    y = cast(np.ndarray, data["y"]).ravel()
+    # print(x.shape)
+
+    ba_if, roc_if = [], []
+    ba_loda, roc_loda = [], []
+    ba_dif, roc_dif = [], []
+
+    for iter in range(10):
+        x_train, x_test, y_train, y_test = train_test_split(
+            x,
+            y,
+            test_size=0.4,
+        )
+        scaler = StandardScaler()
+        x_train = scaler.fit_transform(x_train)
+        x_test = scaler.transform(x_test)
+
+        iff = IForest(contamination=y.mean())
+        iff.fit(x_train)
+        ba_if.append(balanced_accuracy_score(y_test, iff.predict(x_test)))
+        roc_if.append(roc_auc_score(y_test, iff.decision_function(x_test)))
+
+        iff = LODA(contamination=y.mean())
+        iff.fit(x_train)
+        ba_loda.append(balanced_accuracy_score(y_test, iff.predict(x_test)))
+        roc_loda.append(roc_auc_score(y_test, iff.decision_function(x_test)))
+
+        iff = DIF(contamination=y.mean())
+        iff.fit(x_train)
+        ba_dif.append(balanced_accuracy_score(y_test, iff.predict(x_test)))
+        roc_dif.append(roc_auc_score(y_test, iff.decision_function(x_test)))
+
+    print(np.mean(ba_if), np.mean(roc_if))
+    print(np.mean(ba_loda), np.mean(roc_loda))
+    print(np.mean(ba_dif), np.mean(roc_dif))
+
+
 # chosen by fair dice rol
 # guranteed to be random
 RANDOM_SEED = 4
@@ -163,6 +205,6 @@ RANDOM_SEED = 4
 def main() -> None:
     np.random.seed(RANDOM_SEED)
     # ex1()
-    ex2()
-    # ex3()
+    # ex2()
+    ex3()
     # ex4()
